@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup><Compile Include="..\TaskbarAdapter.cs" Link="TaskbarAdapter.cs" />
+    <Compile Include="..\SharedChannel.cs" Link="SharedChannel.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="..\ClockContent.cs" Link="ClockContent.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="..\..\weather_fetch\WeatherConditions.cs" Link="WeatherConditions.cs" /></ItemGroup>
+</Project>

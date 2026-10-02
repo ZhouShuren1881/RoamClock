@@ -1,0 +1,84 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="RoamClock" Manufacturer="RoamClock" Version="$(var.ProductVersion)"
+           UpgradeCode="93A98E43-80D0-4CEE-9439-ECC135AEE079" Scope="perUser" Language="2052">
+    <MajorUpgrade DowngradeErrorMessage="已安装较新版本的 RoamClock。" />
+    <MediaTemplate EmbedCab="yes" />
+    <ui:WixUI Id="WixUI_FeatureTree" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="安装完成后启动 RoamClock" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <!-- 异步启动已安装的程序，安装向导无需等待程序退出。 -->
+    <CustomAction Id="LaunchRoamClock" FileRef="RoamClockExe" ExeCommand=""
+                  Execute="immediate" Impersonate="yes" Return="asyncNoWait" />
+    <!-- 直接从欢迎页进入功能选择；完成页由 WixUI 等待用户点击“完成”。 -->
+    <UI>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg"
+               Order="3" Condition="NOT Installed" />
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg"
+               Order="3" Condition="NOT Installed" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchRoamClock"
+               Order="1" Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed" />
+    </UI>
+    <!-- WindowsBuild can report a compatibility build instead of the actual OS build. -->
+    <Property Id="WINDOWSBUILDNUMBER" Secure="yes">
+      <RegistrySearch Id="WindowsBuildNumberSearch" Root="HKLM"
+                      Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion" Name="CurrentBuildNumber"
+                      Type="raw" Bitness="always64" />
+    </Property>
+    <Launch Condition="Installed OR (VersionNT64 AND WINDOWSBUILDNUMBER &gt;= 22000)" Message="RoamClock 需要 Windows 11 x64。" />
+    <Icon Id="AppIcon" SourceFile="$(var.ProjectDir)\assets\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="RoamClock">
+          <Component Id="Application" Guid="1DB02E33-9F7D-480B-A8A2-FA252B894A5A">
+            <File Id="RoamClockExe" Source="$(var.PublishDir)\RoamClock.exe" />
+            <!-- Windows Installer 的 ICE38 校验要求：安装到用户目录的组件，必须使用 HKCU 注册表项作为 KeyPath -->
+            <RegistryValue Root="HKCU" Key="Software\RoamClock\Installer" Name="Application" Type="integer" Value="1" KeyPath="yes" />
+            <!-- RemoveFolder 用于卸载时清理空的安装目录。 -->
+            <!-- 未指定 Directory，所以目标默认是所在组件的目录 -->
+            <!-- 只删除空目录。安装包管理的文件由 MSI 卸载；如果目录内还留有日志、用户文件或子目录，这条规则不会递归删除它们。 -->
+            <RemoveFolder Id="RemoveInstallFolder" On="uninstall" />
+          </Component>
+          <Component Id="NativeAdapter" Guid="046D5B0B-7666-49EB-B0A1-AE625F03125F">
+            <File Source="$(var.PublishDir)\RoamClock.Native.dll" />
+            <RegistryValue Root="HKCU" Key="Software\RoamClock\Installer" Name="NativeAdapter" Type="integer" Value="1" KeyPath="yes" />
+          </Component>
+          <Component Id="Notices" Guid="8D6DBA59-DB1C-43F3-8E30-B72DE5A95BFB">
+            <File Source="$(var.PublishDir)\THIRD-PARTY-NOTICES.md" />
+            <RegistryValue Root="HKCU" Key="Software\RoamClock\Installer" Name="Notices" Type="integer" Value="1" KeyPath="yes" />
+          </Component>
+          <Component Id="LoginStartup" Guid="*">
+            <RegistryValue Root="HKCU" Key="Software\Microsoft\Windows\CurrentVersion\Run"
+                           Name="RoamClock" Type="string" Value="&quot;[#RoamClockExe]&quot; --background" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="RoamClockMenuFolder" Name="RoamClock">
+        <Component Id="StartMenuShortcut" Guid="*">
+          <Shortcut Id="SettingsShortcut" Name="RoamClock" Target="[#RoamClockExe]" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon" />
+          <RegistryValue Root="HKCU" Key="Software\RoamClock\Installer" Name="Shortcut" Type="integer" Value="1" KeyPath="yes" />
+          <RemoveFolder Id="RemoveStartMenuFolder" On="uninstall" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    <Feature Id="ProductFeature" Title="RoamClock 主程序"
+             Description="安装 RoamClock 及其运行所需的组件。" Level="1" AllowAbsent="no"
+             AllowAdvertise="no" Display="expand">
+      <ComponentRef Id="Application" />
+      <ComponentRef Id="NativeAdapter" />
+      <ComponentRef Id="Notices" />
+      <Feature Id="LoginStartupFeature" Title="登录时自动启动"
+               Description="登录 Windows 后在后台自动启动 RoamClock。" Level="1" AllowAdvertise="no">
+        <ComponentRef Id="LoginStartup" />
+      </Feature>
+      <Feature Id="StartMenuShortcutFeature" Title="开始菜单快捷方式"
+               Description="在开始菜单中添加 RoamClock 快捷方式。" Level="1" AllowAdvertise="no">
+        <ComponentRef Id="StartMenuShortcut" />
+      </Feature>
+    </Feature>
+  </Package>
+</Wix>

@@ -1,0 +1,46 @@
+<Window x:Class="RoamClock.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:components="clr-namespace:RoamClock.Components"
+        Title="漫游时钟 - RoamClock" Icon="/RoamClock;component/assets/app.ico" Width="620" Height="620" MinWidth="540" MinHeight="560"
+        WindowStartupLocation="CenterScreen" Background="#F3F5F8" FontFamily="Segoe UI, Microsoft YaHei UI">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="30,24">
+            <TextBlock Text="漫游时钟" FontSize="26" FontWeight="SemiBold" Foreground="#182233"/>
+            <TextBlock Text="让任务栏显示你关心的时间与天气" Margin="0,5,0,20" Foreground="#58667A"/>
+            <Border Background="#252B36" CornerRadius="12" Padding="22,14" Margin="0,0,0,22">
+                <StackPanel>
+                    <TextBlock Text="任务栏预览" Foreground="#A5B1C3" FontSize="11" Margin="0,0,0,6"/>
+                    <components:ClockPanel x:Name="PreviewPanel" Width="154" Height="48" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+            <TextBlock Text="时钟时区" FontWeight="SemiBold"/>
+            <ComboBox x:Name="ZonePicker" Margin="0,6,0,14" Padding="8" DisplayMemberPath="DisplayName"/>
+            <TextBlock Text="天气城市（可与时区不同）" FontWeight="SemiBold"/>
+            <TextBox x:Name="CityInput" Margin="0,6,0,14" Padding="9" MaxLength="120"/>
+            <WrapPanel Margin="0,0,0,14">
+                <CheckBox x:Name="SecondsToggle" Content="显示秒" Margin="0,0,24,0"/>
+                <CheckBox x:Name="WeatherToggle" Content="显示天气" Margin="0,0,24,0"/>
+                <CheckBox x:Name="EnabledToggle" Content="启用任务栏时钟"/>
+            </WrapPanel>
+            <DockPanel Margin="0,0,0,16">
+                <TextBlock Text="时钟宽度" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding ElementName=WidthSlider, Path=Value, StringFormat={}{0:0} DIP}" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <Slider x:Name="WidthSlider" Minimum="50" Maximum="320" TickFrequency="8" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
+            </DockPanel>
+            <Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button x:Name="RefreshButton" Content="刷新天气" Click="RefreshWeather" Padding="14,8" Margin="0,0,10,8"/>
+                    <Button Content="dev" Click="OpenStyleCheck" Padding="14,8" Margin="0,0,0,8"/>
+                </StackPanel>
+                <Button Content="保存并应用" Click="ApplySettings" HorizontalAlignment="Right" Padding="18,8" Margin="0,0,0,8"/>
+            </Grid>
+            <TextBlock x:Name="StatusText" TextWrapping="Wrap" Foreground="#42526A" Margin="0,8,0,0"/>
+            <TextBlock x:Name="WeatherText" TextWrapping="Wrap" Foreground="#66758B" FontSize="12" Margin="0,7,0,0"/>
+            <DockPanel Margin="0,18,0,0">
+                <Button Content="退出" Click="ExitApplication" DockPanel.Dock="Right" Padding="15,5"/>
+                <TextBlock Text="关闭窗口后继续运行，可从托盘打开设置。" TextWrapping="Wrap" Foreground="#66758B" FontSize="11" VerticalAlignment="Center"/>
+            </DockPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>
